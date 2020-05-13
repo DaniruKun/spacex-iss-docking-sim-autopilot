@@ -12,18 +12,18 @@
 (defn setup-sim
   "Setup the simulator."
   [driv]
+  (println "Setting up the simulator...")
   (doto driv
     (go sim-website-url)
     (wait-visible begin-button)
-    (wait 10)
-    )
-  )
+    (click begin-button)
+    (wait 10))
+  (println "Simulator started."))
 
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println "Launching docking simulator")
+  (println "Starting up webdriver...")
   (with-chrome {} chr
       ;; Setup the simulator
-      (setup-sim chr))
-  )
+    (setup-sim chr)))
