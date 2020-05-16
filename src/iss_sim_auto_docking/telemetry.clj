@@ -1,21 +1,43 @@
 (ns iss-sim-auto-docking.telemetry
-  (:require [etaoin.keys :as k]
+  (:require [clojure.string :as str]
+            [etaoin.keys :as k]
             [etaoin.api :refer :all])
   (:gen-class)
   )
 
+(def telem (atom {
+                  :x 0.0
+                  :y 0.0
+                  :z 0.0
+                  :roll 0.0
+                  :pitch 0.0
+                  :yaw 0.0
+                  :roll-rate 0.0
+                  :pitch-rate 0.0
+                  :yaw-rate 0.0
+                  }))
+
+
+(def deg (new String "°"))
+(def emptystr (new String ""))
+
+;; Internal functions
+
 (defn parse-delta
   [delta]
-  (int (clojure.string/replace delta #"°" ""))
+  (-> delta
+      (.split deg)
+      first
+      Float/parseFloat)
   )
 
 (defn parse-rate
   [rate]
-  (int (clojure.string/replace rate #" °/s" "")))
+  (Float/parseFloat (str/replace rate #" °/s" emptystr)))
 
 (defn parse-range
   [range]
-  (int (clojure.string/replace range #" m" "")))
+  (Float/parseFloat (str/replace range #" m" emptystr)))
 
 ;; Roll
 
@@ -80,5 +102,33 @@
   (let [range-q (query driv {:css "#range > div.rate"})
         range (get-element-text-el driv range-q)]
     (parse-range range)
+    )
+  )
+
+(defn init-telem
+  "Set initial telemetry"
+  [driv]
+  (swap! telem assoc
+         :roll (get-roll-delta driv)
+         :pitch (get-pitch-delta driv)
+         :yaw (get-yaw-delta driv)))
+
+
+(defn poller
+  "Poll telemetry and update the state until dist to station is zero."
+  [driv]
+  (if true
+    (do
+      (swap! telem assoc
+             :roll (get-roll-delta driv)
+             :pitch (get-pitch-delta driv)
+             :yaw (get-yaw-delta driv)
+             :roll-rate (get-roll-rate driv)
+             :pitch-rate (get-pitch-rate driv)
+             :yaw-rate (get-yaw-rate driv)
+             )
+      (Thread/sleep 50)
+      (recur driv)
+      )
     )
   )
