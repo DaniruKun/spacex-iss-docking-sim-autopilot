@@ -32,9 +32,12 @@
     (println "Started telemetry poller")
     (future (tel/poll chr))
     (Thread/sleep 2000)
-    (dragon/align-rot chr)
-    (println "Completed alignment!")
-    (Thread/sleep 10000)
+    ;; concurrent futures for each control axis
+    (future (dragon/align-roll-rot chr))
+    (future (dragon/align-pitch-rot chr))
+    (future (dragon/align-yaw-rot chr))
+
+    (Thread/sleep 120000)
     )
   (System/exit 0)
   )
