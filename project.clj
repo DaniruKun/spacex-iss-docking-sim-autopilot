@@ -16,9 +16,6 @@
                          (use 'etaoin.api)
                          (require '[etaoin.keys :as k])
                          (require '[iss-sim-auto-docking.dragon :as dragon])
-                         )
-                 }
+                         (require '[iss-sim-auto-docking.telemetry :as tel]))}
   :profiles {:uberjar {:aot :all}
-             :dev {:plugins [[lein-cljfmt "0.5.7"]]}
-             }
-  )
+             :dev {:plugins [[lein-cljfmt "0.5.7"]]}})

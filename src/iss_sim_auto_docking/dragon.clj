@@ -52,7 +52,7 @@
            (and
             (neg? (@tel/telem :yaw-rate)) (= dir "starboard"))
            (and
-            (pos? (@tel/telem :yaw-rate)) (= dir "port"))) ;;; just fucking repeat this everywhere else
+            (pos? (@tel/telem :yaw-rate)) (= dir "port")))
      (case dir
        "port" (fill-active driv k/arrow-left)                  ;; left
        "starboard" (fill-active driv k/arrow-right)            ;; right
@@ -136,6 +136,8 @@
   ""
   []
   (<= (math/abs (@tel/telem :roll)) max-rotation-error))
+
+;; public functions
 
 (defn align-roll-rot
   "docstring"

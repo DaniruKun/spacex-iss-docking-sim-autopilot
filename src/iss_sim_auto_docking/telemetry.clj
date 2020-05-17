@@ -1,18 +1,11 @@
 (ns iss-sim-auto-docking.telemetry
   (:require [clojure.string :as str]
             [etaoin.keys :as k]
-            [etaoin.api :refer :all])
+            [etaoin.api :refer :all]
+            [clojure.math.numeric-tower :as math])
   (:gen-class))
 
-(def telem (atom {:x 0.0
-                  :y 0.0
-                  :z 0.0
-                  :roll 0.0
-                  :pitch 0.0
-                  :yaw 0.0
-                  :roll-rate 0.0
-                  :pitch-rate 0.0
-                  :yaw-rate 0.0}))
+(def telem (atom {}))
 
 (def deg (new String "°"))
 (def emptystr (new String ""))
@@ -26,13 +19,17 @@
       first
       Float/parseFloat))
 
-(defn parse-rate
+(defn parse-rot-rate
   [rate]
   (Float/parseFloat (str/replace rate #" °/s" emptystr)))
 
-(defn parse-range
+(defn parse-dist
   [range]
   (Float/parseFloat (str/replace range #" m" emptystr)))
+
+(defn parse-vel
+  [vel]
+  (Float/parseFloat (str/replace vel #" m/s" emptystr)))
 
 ;; Roll
 
@@ -48,7 +45,7 @@
   [driv]
   (let [roll-rate-q (query driv {:css "#roll > div.rate"})
         roll-rate (get-element-text-el driv roll-rate-q)]
-    (parse-rate roll-rate)))
+    (parse-rot-rate roll-rate)))
 
 ;; Pitch
 
@@ -64,7 +61,7 @@
   [driv]
   (let [pitch-rate-q (query driv {:css "#pitch > div.rate"})
         pitch-rate (get-element-text-el driv pitch-rate-q)]
-    (parse-rate pitch-rate)))
+    (parse-rot-rate pitch-rate)))
 
 ;; Yaw
 
@@ -82,17 +79,49 @@
         yaw-rate (get-element-text-el driv yaw-rate-q)]
     (parse-delta yaw-rate)))
 
+;; Distance
+
 (defn get-range
   "Get the Euclidian distance to the ISS in meters."
   [driv]
   (let [range-q (query driv {:css "#range > div.rate"})
         range (get-element-text-el driv range-q)]
-    (parse-range range)))
+    (parse-dist range)))
+
+(defn get-x
+  "Get the distance to ISS on X axis."
+  [driv]
+  (let [x-q (query driv {:css "#x-range > div"})
+        x (get-element-text-el driv x-q)]
+    (parse-dist x)))
+
+(defn get-y
+  "Get the distance to ISS on Y axis."
+  [driv]
+  (let [y-q (query driv {:css "#y-range > div"})
+        y (get-element-text-el driv y-q)]
+    (parse-dist y)))
+
+(defn get-z
+  "Get the distance to ISS on Z axis."
+  [driv]
+  (let [z-q  (query driv {:css "#z-range > div"})
+        z (get-element-text-el driv z-q)]
+    (parse-dist z)))
+
+(defn get-vel-mag
+  "Get the velocity vector magnitude relative to ISS."
+  [driv]
+  (let [v-q (query driv {:css "#rate > div.rate"})
+        v (get-element-text-el driv v-q)]
+    (-> v
+        (parse-vel)
+        (math/abs))))
 
 (defn poll
   "Poll telemetry and update the state until dist to station is zero."
   [driv]
-  (if true                                                  ;; TODO add proper termination of telemetry poller by checking if driver is active
+  (if true                                        ;; TODO add proper termination of telemetry poller by checking if driver is active
     (do
       (swap! telem assoc
              :roll (get-roll-delta driv)
@@ -100,6 +129,11 @@
              :yaw (get-yaw-delta driv)
              :roll-rate (get-roll-rate driv)
              :pitch-rate (get-pitch-rate driv)
-             :yaw-rate (get-yaw-rate driv))
+             :yaw-rate (get-yaw-rate driv)
+             :range (get-range driv)
+             :x (get-x driv)
+             :y (get-y driv)
+             :z (get-z driv)
+             :v (get-vel-mag driv))
       (Thread/sleep 50)
       (recur driv))))
