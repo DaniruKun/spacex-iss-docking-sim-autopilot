@@ -16,11 +16,22 @@
 
 (defn roll
   "Roll the Crew Dragon left or right (CCW or CW)."
-  [driv dir]
-  (if (< (math/abs (@tel/telem :roll-rate)) max-def-rot-rate)
+  ([driv dir max-roll-rate]
+  (if (or
+      (< (math/abs (@tel/telem :roll-rate)) max-roll-rate)
+      (and
+        (pos? (@tel/telem :roll-rate)) (= dir "left")
+        )
+      (and
+        (neg? (@tel/telem :roll-rate)) (= dir "right"))
+      )
+
     (case dir
       "left" (fill-active driv comma)
       "right" (fill-active driv point))))
+  ([driv dir]
+   (roll driv dir max-def-rot-rate))
+  )
 
 (defn pitch
   "Pitch the Crew Dragon up or down."
@@ -81,6 +92,14 @@
     (yaw driv "port")
     (yaw driv "starboard")))
 
+(defn align-roll
+  "docstring"
+  [driv]
+  (println "ALIGN ROLL")
+  (if (neg? (@tel/telem :roll))
+    (roll driv "left")
+    (roll driv "right")))
+
 (defn kill-pitch-rot
   "docstring"
   [driv]
@@ -95,18 +114,17 @@
     (yaw driv "port" 0.1)
     (yaw driv "starboard" 0.1)))
 
-(defn kill-rot
-  "Kill all Dragon rotation"
+(defn kill-roll-rot
+  "docstring"
   [driv]
   (println "KILL ROT")
-  (when (not (or
-             (zero? (@tel/telem :pitch-rate))
-             (zero? (@tel/telem :yaw-rate))
-             (zero? (@tel/telem :roll-rate))))
-
-    (kill-pitch-rot driv)
-    (kill-yaw-rot driv)
+  (Thread/sleep 100)
+  (when (not (zero? (@tel/telem :roll-rate)))
+    (if (pos? (@tel/telem :roll-rate))
+      (roll driv "left" 0.1)
+      (roll driv "right" 0.1))
     (recur driv)
+
     )
   )
 
@@ -120,25 +138,32 @@
   []
   (<= (math/abs (@tel/telem :yaw)) max-rotation-error))
 
+(defn roll-within-error?
+  ""
+  []
+  (<= (math/abs (@tel/telem :roll)) max-rotation-error))
+
 (defn align-rot
   "Align rotation of Dragon to match docking port."
   [driv]
   (Thread/sleep 200)    ;; min interval between RCS impulses
   (println @tel/telem)
 
-  (when
-    (> (math/abs (@tel/telem :pitch)) max-rotation-error)
-    (align-pitch driv))
-  (when
-    (> (math/abs (@tel/telem :yaw)) max-rotation-error)
-    (align-yaw driv))
 
-  (if (not (and
-          (pitch-within-error?)
-          (yaw-within-error?)))
-    (do
-      (recur driv)
-      )
+  (if (roll-within-error?)
+    (kill-roll-rot driv)
+    (align-roll driv))
+
+  ;(if pitch-within-error?
+  ;  (kill-pitch-rot driv)
+  ;  (align-pitch driv))
+  ;
+  ;(if yaw-within-error?
+  ;  (kill-yaw-rot driv)
+  ;  (align-yaw driv))
+
+  (when (not (roll-within-error?))
+    (recur driv)
     )
   )
 

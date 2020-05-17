@@ -17,7 +17,7 @@
   (doto driv
     (set-window-size 1200 800)
     (go sim-website-url)
-    (wait-visible begin-button)
+    (wait-visible begin-button {:timeout 30})
     (click begin-button)
     (wait 12))
   (println "Simulator started."))
@@ -34,7 +34,7 @@
     (Thread/sleep 2000)
     (dragon/align-rot chr)
     (println "Completed alignment!")
-               (dragon/kill-rot chr)
-    (Thread/sleep 2000)
+    (Thread/sleep 10000)
     )
+  (System/exit 0)
   )

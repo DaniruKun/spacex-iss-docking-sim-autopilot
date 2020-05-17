@@ -105,14 +105,6 @@
     )
   )
 
-(defn init-telem
-  "Set initial telemetry"
-  [driv]
-  (swap! telem assoc
-         :roll (get-roll-delta driv)
-         :pitch (get-pitch-delta driv)
-         :yaw (get-yaw-delta driv)))
-
 
 (defn poller
   "Poll telemetry and update the state until dist to station is zero."
