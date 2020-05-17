@@ -30,7 +30,7 @@
     ;; Setup the simulator
     (setup-sim chr)
     (println "Started telemetry poller")
-    (future (tel/poller chr))
+    (future (tel/poll chr))
     (Thread/sleep 2000)
     (dragon/align-rot chr)
     (println "Completed alignment!")

@@ -95,7 +95,6 @@
 (defn align-roll
   "docstring"
   [driv]
-  (println "ALIGN ROLL")
   (if (neg? (@tel/telem :roll))
     (roll driv "left")
     (roll driv "right")))
@@ -103,28 +102,36 @@
 (defn kill-pitch-rot
   "docstring"
   [driv]
-  (if (pos? (@tel/telem :pitch-rate))
-    (pitch driv "up" 0.1)
-    (pitch driv "down" 0.1)))
+  (Thread/sleep 100)
+  (when (not (zero? (@tel/telem :pitch-rate)))
+    (if (pos? (@tel/telem :pitch-rate))
+      (pitch driv "up" 0.1)
+      (pitch driv "down" 0.1))
+    (recur driv)
+    )
+  )
 
 (defn kill-yaw-rot
   "docstring"
   [driv]
-  (if (pos? (@tel/telem :yaw-rate))
-    (yaw driv "port" 0.1)
-    (yaw driv "starboard" 0.1)))
+  (Thread/sleep 100)
+  (when (not (zero? (@tel/telem :yaw-rate)))
+    (if (pos? (@tel/telem :yaw-rate))
+      (yaw driv "port" 0.1)
+      (yaw driv "starboard" 0.1))
+    (recur driv)
+    )
+  )
 
 (defn kill-roll-rot
   "docstring"
   [driv]
-  (println "KILL ROT")
   (Thread/sleep 100)
   (when (not (zero? (@tel/telem :roll-rate)))
     (if (pos? (@tel/telem :roll-rate))
       (roll driv "left" 0.1)
       (roll driv "right" 0.1))
     (recur driv)
-
     )
   )
 
@@ -143,26 +150,29 @@
   []
   (<= (math/abs (@tel/telem :roll)) max-rotation-error))
 
+
 (defn align-rot
   "Align rotation of Dragon to match docking port."
   [driv]
   (Thread/sleep 200)    ;; min interval between RCS impulses
   (println @tel/telem)
 
-
   (if (roll-within-error?)
     (kill-roll-rot driv)
     (align-roll driv))
 
-  ;(if pitch-within-error?
-  ;  (kill-pitch-rot driv)
-  ;  (align-pitch driv))
-  ;
-  ;(if yaw-within-error?
-  ;  (kill-yaw-rot driv)
-  ;  (align-yaw driv))
+  (if (pitch-within-error?)
+    (kill-pitch-rot driv)
+    (align-pitch driv))
 
-  (when (not (roll-within-error?))
+  (if (yaw-within-error?)
+    (kill-yaw-rot driv)
+    (align-yaw driv))
+
+  (when (not (and
+               (roll-within-error?)
+               (pitch-within-error?)
+               (yaw-within-error?)))
     (recur driv)
     )
   )
