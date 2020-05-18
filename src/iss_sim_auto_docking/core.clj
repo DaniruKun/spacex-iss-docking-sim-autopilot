@@ -1,5 +1,5 @@
 (ns iss-sim-auto-docking.core
-  (:require [etaoin.keys :as k]
+  (:require
             [etaoin.api :refer :all]
             [iss-sim-auto-docking.dragon :as dragon]
             [iss-sim-auto-docking.telemetry :as tel])

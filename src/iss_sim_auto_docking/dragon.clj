@@ -15,6 +15,8 @@
 (def max-rotation-error 0.2)
 (def min-impulse-interval 200) ;; ms
 
+;; RCS control functions
+
 (defn roll
   "Roll the Crew Dragon left or right (CCW or CW)."
   ([driv dir max-roll-rate]
@@ -72,6 +74,8 @@
     "aft" (fill-active driv "q")                            ;; back
 ))
 
+;; Alignment functions
+
 (defn align-pitch
   [driv]
   (if (neg? (@tel/telem :pitch))
@@ -122,6 +126,8 @@
       (roll driv "right" 0.1))
     (recur driv)))
 
+;; Internal functions
+
 (defn pitch-within-error?
   "docstring"
   []
@@ -137,7 +143,7 @@
   []
   (<= (math/abs (@tel/telem :roll)) max-rotation-error))
 
-;; public functions
+;; Public functions
 
 (defn align-roll-rot
   "docstring"

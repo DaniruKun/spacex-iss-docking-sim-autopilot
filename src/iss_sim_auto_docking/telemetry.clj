@@ -1,15 +1,21 @@
 (ns iss-sim-auto-docking.telemetry
-  (:require [clojure.string :as str]
+  (:require [iss-sim-auto-docking.calc :as calc]
+            [clojure.string :as str]
             [etaoin.keys :as k]
             [etaoin.api :refer :all]
             [clojure.math.numeric-tower :as math])
   (:gen-class))
 
-(def telem (atom {}))
+(def telem (atom {:x 200
+                  :y 12
+                  :z 30
+                  :t (System/currentTimeMillis)
+                  }))
 
 (def deg (new String "°"))
 (def emptystr (new String ""))
 
+(def poll-interval 25) ;; ms
 ;; Internal functions
 
 (defn parse-delta
@@ -109,8 +115,8 @@
         z (get-element-text-el driv z-q)]
     (parse-dist z)))
 
-(defn get-vel-mag
-  "Get the velocity vector magnitude relative to ISS."
+(defn get-approach-rate
+  "Get the approach rate relative to ISS."
   [driv]
   (let [v-q (query driv {:css "#rate > div.rate"})
         v (get-element-text-el driv v-q)]
@@ -119,21 +125,45 @@
         (math/abs))))
 
 (defn poll
-  "Poll telemetry and update the state until dist to station is zero."
+  "Poll telemetry and update the state."
   [driv]
   (if true                                        ;; TODO add proper termination of telemetry poller by checking if driver is active
     (do
-      (swap! telem assoc
-             :roll (get-roll-delta driv)
-             :pitch (get-pitch-delta driv)
-             :yaw (get-yaw-delta driv)
-             :roll-rate (get-roll-rate driv)
-             :pitch-rate (get-pitch-rate driv)
-             :yaw-rate (get-yaw-rate driv)
-             :range (get-range driv)
-             :x (get-x driv)
-             :y (get-y driv)
-             :z (get-z driv)
-             :v (get-vel-mag driv))
-      (Thread/sleep 50)
+      (Thread/sleep poll-interval)
+      (let [t (System/currentTimeMillis)
+            dt (+ (* poll-interval 0.001) (- t (@telem :t)))
+            x (get-x driv)
+            y (get-y driv)
+            z (get-z driv)
+
+            dx (math/abs (- x (@telem :x)))
+            dy (math/abs (- y (@telem :y)))
+            dz (math/abs (- z (@telem :z)))
+
+            vx (calc/get-vx dt dx)
+            vy (calc/get-vy dt dy)
+            vz (calc/get-vz dt dz)]
+
+        (swap! telem assoc
+               :roll (get-roll-delta driv)
+               :pitch (get-pitch-delta driv)
+               :yaw (get-yaw-delta driv)
+
+               :roll-rate (get-roll-rate driv)
+               :pitch-rate (get-pitch-rate driv)
+               :yaw-rate (get-yaw-rate driv)
+
+               :range (get-range driv)
+
+               :x x
+               :y y
+               :z z
+
+               :vx vx
+               :vy vy
+               :vz vz
+
+               :t (System/currentTimeMillis)
+               ))
+
       (recur driv))))
