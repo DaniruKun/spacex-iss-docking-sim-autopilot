@@ -15,7 +15,7 @@
 (def deg (new String "°"))
 (def emptystr (new String ""))
 
-(def poll-interval 25) ;; ms
+(def poll-interval 50) ;; ms
 ;; Internal functions
 
 (defn parse-delta
@@ -136,9 +136,9 @@
             y (get-y driv)
             z (get-z driv)
 
-            dx (math/abs (- x (@telem :x)))
-            dy (math/abs (- y (@telem :y)))
-            dz (math/abs (- z (@telem :z)))
+            dx (- x (@telem :x))
+            dy (- y (@telem :y))
+            dz (- z (@telem :z))
 
             vx (calc/get-vx dt dx)
             vy (calc/get-vy dt dy)

@@ -31,13 +31,22 @@
     (setup-sim chr)
     (println "Started telemetry poller")
     (future (tel/poll chr))
-    (Thread/sleep 2000)
+    (wait chr 2)
     ;; concurrent futures for each control axis
     (future (dragon/align-roll-rot chr))
     (future (dragon/align-pitch-rot chr))
     (future (dragon/align-yaw-rot chr))
 
-    (Thread/sleep 120000)
+    (wait chr 10)
+    (dragon/wait-rotation-stopped)
+    ;; concurrent futures for each translation axis besides approach axis x
+    (wait chr 2)
+    (future (dragon/align-z-translation chr))
+    (future (dragon/align-y-translation chr))
+    (wait chr 5)
+    ;; start actual approach to docking port
+    (dragon/approach chr)
+    (wait chr 10)
     )
   (System/exit 0)
   )

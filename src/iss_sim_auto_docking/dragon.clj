@@ -10,12 +10,14 @@
 
 ;; thresholds
 (def max-def-rot-rate 0.1)
-(def max-approach-rate 0.5)
-(def max-final-approach-rate 0.2)
+(def max-approach-rate -1.0)
+(def max-final-approach-rate -0.10)
 (def max-rotation-error 0.2)
-(def min-impulse-interval 200) ;; ms
+(def min-rot-impulse-interval 400) ;; ms
+(def min-transl-impulse-interval 800)                       ;; ms
 (def max-translation-error 0.2)
-(def max-translation-rate 0.5)
+(def max-translation-rate 0.3)
+(def safezone 10)
 
 ;; RCS control functions
 
@@ -31,7 +33,9 @@
 
      (case dir
        "left" (fill-active driv comma)
-       "right" (fill-active driv point))))
+       "right" (fill-active driv point)))
+   (Thread/sleep min-rot-impulse-interval)
+   )
   ([driv dir]
    (roll driv dir max-def-rot-rate)))
 
@@ -45,7 +49,9 @@
             (neg? (@tel/telem :pitch-rate)) (= dir "down")))
      (case dir
        "up" (fill-active driv k/arrow-up)
-       "down" (fill-active driv k/arrow-down))))
+       "down" (fill-active driv k/arrow-down)))
+   (Thread/sleep min-rot-impulse-interval)
+   )
   ([driv dir]
    (pitch driv dir max-def-rot-rate)))
 
@@ -60,7 +66,9 @@
      (case dir
        "port" (fill-active driv k/arrow-left)                  ;; left
        "starboard" (fill-active driv k/arrow-right)            ;; right
-)))
+))
+   (Thread/sleep min-rot-impulse-interval)
+   )
   ([driv dir]
    (yaw driv dir max-def-rot-rate)))
 
@@ -68,13 +76,32 @@
   "Translate the Crew Dragon in 6 DoF."
   [driv dir]
   (case dir
-    "up" (fill-active driv "w")
-    "down" (fill-active driv "s")
-    "left" (fill-active driv "a")
-    "right" (fill-active driv "d")
-    "fwd" (fill-active driv "e")                            ;; forward
-    "aft" (fill-active driv "q")                            ;; back
-))                                                          ;; TODO implement translation safeguards
+    "up" (when (or
+                (< (math/abs (@tel/telem :vz)) max-translation-rate)
+                (neg? (@tel/telem :vz)))
+           (fill-active driv "w"))
+    "down" (when (or
+                  (< (math/abs (@tel/telem :vz)) max-translation-rate)
+                  (pos? (@tel/telem :vz)))
+             (fill-active driv "s"))
+    "left" (when (or
+                  (< (math/abs (@tel/telem :vy)) max-translation-rate)
+                  (pos? (@tel/telem :vy)))
+             (fill-active driv "a"))
+    "right" (when (or
+                   (< (math/abs (@tel/telem :vy)) max-translation-rate)
+                   (neg? (@tel/telem :vy)))
+              (fill-active driv "d"))
+    "fwd" (when (or
+                 (< (math/abs (@tel/telem :vx)) max-approach-rate)
+                 (pos? (@tel/telem :vx)))
+            (fill-active driv "e"))
+    "aft" (when (or
+                 (< (math/abs (@tel/telem :vx)) max-approach-rate)
+                 (neg? (@tel/telem :vx)))
+            (fill-active driv "q")))
+  (Thread/sleep min-transl-impulse-interval)
+  )
 
 ;; Alignment functions
 
@@ -103,19 +130,20 @@
   [driv]
   (if (pos? (@tel/telem :y))
     (translate driv "left")
-    (translate driv "right")))
+    (translate driv "right"))
+  )
 
 (defn align-z
   "docstring"
   [driv]
   (if (pos? (@tel/telem :z))
     (translate driv "down")
-    (translate driv "up")))
+    (translate driv "up"))
+  )
 
 (defn kill-pitch-rot
   "docstring"
   [driv]
-  (Thread/sleep min-impulse-interval)
   (when (not (zero? (@tel/telem :pitch-rate)))
     (if (pos? (@tel/telem :pitch-rate))
       (pitch driv "up" 0.1)
@@ -125,7 +153,6 @@
 (defn kill-yaw-rot
   "docstring"
   [driv]
-  (Thread/sleep min-impulse-interval)
   (when (not (zero? (@tel/telem :yaw-rate)))
     (if (pos? (@tel/telem :yaw-rate))
       (yaw driv "port" 0.1)
@@ -135,12 +162,31 @@
 (defn kill-roll-rot
   "docstring"
   [driv]
-  (Thread/sleep min-impulse-interval)
   (when (not (zero? (@tel/telem :roll-rate)))
     (if (pos? (@tel/telem :roll-rate))
       (roll driv "left" 0.1)
       (roll driv "right" 0.1))
     (recur driv)))
+
+(defn kill-y-translation
+  "docstring"
+  [driv]
+  (let [vy (@tel/telem :vy)]
+    (when (not (zero? vy))
+      (if (pos? vy)
+        (translate driv "left")
+        (translate driv "right"))
+      (recur driv))))
+
+(defn kill-z-translation
+  ""
+  [driv]
+  (let [vz (@tel/telem :vz)]
+    (when (not (zero? vz))
+      (if (pos? vz)
+        (translate driv "down")
+        (translate driv "up"))
+      (recur driv))))
 
 ;; Internal functions
 
@@ -167,18 +213,25 @@
 (defn z-within-error?
   "docstring"
   []
-  (<= (math/abs (@tel/telem :z)) max-translation-error)
-  )
+  (<= (math/abs (@tel/telem :z)) max-translation-error))
+
+(defn wait-rotation-stopped
+  "Keep polling telemetry until rotation stop has been confirmed."
+  []
+  (if (and
+       (zero? (@tel/telem :roll-rate))
+       (zero? (@tel/telem :pitch-rate))
+       (zero? (@tel/telem :yaw-rate)))
+    true
+    (recur)))
 
 ;; Public functions
 
 ; Rotation alignment
 
-
 (defn align-roll-rot
   "docstring"
   [driv]
-  (Thread/sleep min-impulse-interval)
   (if (roll-within-error?)
     (kill-roll-rot driv)
     (align-roll driv))
@@ -187,7 +240,6 @@
 (defn align-pitch-rot
   "docstring"
   [driv]
-  (Thread/sleep min-impulse-interval)
   (if (pitch-within-error?)
     (kill-pitch-rot driv)
     (align-pitch driv))
@@ -196,7 +248,6 @@
 (defn align-yaw-rot
   "docstring"
   [driv]
-  (Thread/sleep min-impulse-interval)
   (if (yaw-within-error?)
     (kill-yaw-rot driv)
     (align-yaw driv))
@@ -204,11 +255,37 @@
 
 ; Translation alignment
 
-(defn align-y
-  "docstring"
+(defn align-y-translation
+  "Keep Dragon aligned on y axis."
   [driv]
-  (Thread/sleep min-impulse-interval)
   (if (y-within-error?)
-    "kill y translation or smth"                            ;; todo implement translation killer
+    (kill-y-translation driv)
     (align-y driv))
-  )
+  (recur driv))
+
+(defn align-z-translation
+  "Keep Dragon aligned on z axis."
+  [driv]
+  (if (z-within-error?)
+    (kill-z-translation driv)
+    (align-z driv))
+  (recur driv))
+
+(defn approach
+  "Perform controlled approach on x axis."
+  [driv]
+  (let [x (@tel/telem :x)
+        vx (@tel/telem :vx)
+        max-rate (cond
+                   (> x safezone) max-approach-rate
+                   (<= x safezone) max-final-approach-rate
+                   :else max-final-approach-rate)]
+
+    (Thread/sleep 1000)
+    (println tel/telem)
+    (if (< vx max-rate)
+      (translate driv "aft")
+      (translate driv "fwd"))
+
+    (when (not (<= x 0))
+      (recur driv))))
