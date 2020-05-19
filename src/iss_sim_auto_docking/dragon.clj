@@ -14,6 +14,8 @@
 (def max-final-approach-rate 0.2)
 (def max-rotation-error 0.2)
 (def min-impulse-interval 200) ;; ms
+(def max-translation-error 0.2)
+(def max-translation-rate 0.5)
 
 ;; RCS control functions
 
@@ -72,7 +74,7 @@
     "right" (fill-active driv "d")
     "fwd" (fill-active driv "e")                            ;; forward
     "aft" (fill-active driv "q")                            ;; back
-))
+))                                                          ;; TODO implement translation safeguards
 
 ;; Alignment functions
 
@@ -95,6 +97,20 @@
   (if (neg? (@tel/telem :roll))
     (roll driv "left")
     (roll driv "right")))
+
+(defn align-y
+  "docstring"
+  [driv]
+  (if (pos? (@tel/telem :y))
+    (translate driv "left")
+    (translate driv "right")))
+
+(defn align-z
+  "docstring"
+  [driv]
+  (if (pos? (@tel/telem :z))
+    (translate driv "down")
+    (translate driv "up")))
 
 (defn kill-pitch-rot
   "docstring"
@@ -143,7 +159,21 @@
   []
   (<= (math/abs (@tel/telem :roll)) max-rotation-error))
 
+(defn y-within-error?
+  "docstring"
+  []
+  (<= (math/abs (@tel/telem :y)) max-translation-error))
+
+(defn z-within-error?
+  "docstring"
+  []
+  (<= (math/abs (@tel/telem :z)) max-translation-error)
+  )
+
 ;; Public functions
+
+; Rotation alignment
+
 
 (defn align-roll-rot
   "docstring"
@@ -171,3 +201,14 @@
     (kill-yaw-rot driv)
     (align-yaw driv))
   (recur driv))
+
+; Translation alignment
+
+(defn align-y
+  "docstring"
+  [driv]
+  (Thread/sleep min-impulse-interval)
+  (if (y-within-error?)
+    "kill y translation or smth"                            ;; todo implement translation killer
+    (align-y driv))
+  )

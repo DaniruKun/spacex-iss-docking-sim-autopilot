@@ -131,7 +131,7 @@
     (do
       (Thread/sleep poll-interval)
       (let [t (System/currentTimeMillis)
-            dt (+ (* poll-interval 0.001) (- t (@telem :t)))
+            dt (* (+ poll-interval (- t (@telem :t))) 0.001)
             x (get-x driv)
             y (get-y driv)
             z (get-z driv)
