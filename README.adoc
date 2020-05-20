@@ -1,6 +1,8 @@
 = ISS Sim Automatic Docking System
 
-video::YNYwYZznuMs[youtube]
+
+[![Demo video](https://img.youtube.com/vi/YNYwYZznuMs/0.jpg)](https://www.youtube.com/watch?v=YNYwYZznuMs)
+
 
 This app performs fully automatic docking of the Crew Dragon in the SpaceX ISS docking simulator.
 
