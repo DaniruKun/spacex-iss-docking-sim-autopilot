@@ -156,7 +156,7 @@
         (translate driv "up")))))
 
 (defn kill-pitch-rot
-  "docstring"
+  "Kill pitch rotation."
   [driv]
   (when (not (zero? (@tel/telem :pitch-rate)))
     (if (pos? (@tel/telem :pitch-rate))
@@ -165,7 +165,7 @@
     (recur driv)))
 
 (defn kill-yaw-rot
-  "docstring"
+  "Kill yaw rotation."
   [driv]
   (when (not (zero? (@tel/telem :yaw-rate)))
     (if (pos? (@tel/telem :yaw-rate))
@@ -174,7 +174,7 @@
     (recur driv)))
 
 (defn kill-roll-rot
-  "docstring"
+  "Kill roll rotation."
   [driv]
   (when (not (zero? (@tel/telem :roll-rate)))
     (if (pos? (@tel/telem :roll-rate))
@@ -183,7 +183,7 @@
     (recur driv)))
 
 (defn kill-y-translation
-  "docstring"
+  "Kill y axis translation velocity."
   [driv]
   (let [vy (@tel/telem :vy)]
     (when (not (zero? vy))
@@ -194,7 +194,7 @@
       (recur driv))))
 
 (defn kill-z-translation
-  ""
+  "Kill z axis translation velocity."
   [driv]
   (let [vz (@tel/telem :vz)]
     (when (not (zero? vz))
@@ -204,23 +204,15 @@
       (Thread/sleep min-transl-impulse-interval)
       (recur driv))))
 
-(defn slowdown-under-limit
-  "docstring"
-  [driv max-rate]
-  (let [vx (@tel/telem :vx)]
-    (when (<= vx max-rate)
-      (translate driv "aft")
-      (recur driv max-rate))))
-
 ;; Internal functions
 
 (defn pitch-within-error?
-  "docstring"
+  ""
   []
   (<= (math/abs (@tel/telem :pitch)) max-rotation-error))
 
 (defn yaw-within-error?
-  "docstring"
+  ""
   []
   (<= (math/abs (@tel/telem :yaw)) max-rotation-error))
 
@@ -230,12 +222,12 @@
   (<= (math/abs (@tel/telem :roll)) max-rotation-error))
 
 (defn y-within-error?
-  "docstring"
+  ""
   []
   (<= (math/abs (@tel/telem :y)) max-translation-error))
 
 (defn z-within-error?
-  "docstring"
+  ""
   []
   (<= (math/abs (@tel/telem :z)) max-translation-error))
 
@@ -254,7 +246,7 @@
 ; Rotation alignment
 
 (defn align-roll-rot
-  "docstring"
+  "Perform roll alignment."
   [driv]
   (if (roll-within-error?)
     (kill-roll-rot driv)
@@ -262,7 +254,7 @@
   (recur driv))
 
 (defn align-pitch-rot
-  "docstring"
+  "Perform pitch alignment."
   [driv]
   (if (pitch-within-error?)
     (kill-pitch-rot driv)
@@ -270,7 +262,7 @@
   (recur driv))
 
 (defn align-yaw-rot
-  "docstring"
+  "Perform yaw alignment."
   [driv]
   (if (yaw-within-error?)
     (kill-yaw-rot driv)
