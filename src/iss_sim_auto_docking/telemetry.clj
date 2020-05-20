@@ -9,13 +9,12 @@
 (def telem (atom {:x 200
                   :y 12
                   :z 30
-                  :t (System/currentTimeMillis)
-                  }))
+                  :t (System/currentTimeMillis)}))
 
 (def deg (new String "°"))
 (def emptystr (new String ""))
 
-(def poll-interval 50) ;; ms
+(def poll-interval 150) ;; ms
 ;; Internal functions
 
 (defn parse-delta
@@ -163,7 +162,6 @@
                :vy vy
                :vz vz
 
-               :t (System/currentTimeMillis)
-               ))
+               :t (System/currentTimeMillis)))
 
       (recur driv))))

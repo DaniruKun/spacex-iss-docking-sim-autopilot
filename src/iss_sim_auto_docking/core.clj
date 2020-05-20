@@ -1,8 +1,8 @@
 (ns iss-sim-auto-docking.core
   (:require
-            [etaoin.api :refer :all]
-            [iss-sim-auto-docking.dragon :as dragon]
-            [iss-sim-auto-docking.telemetry :as tel])
+   [etaoin.api :refer :all]
+   [iss-sim-auto-docking.dragon :as dragon]
+   [iss-sim-auto-docking.telemetry :as tel])
   (:gen-class))
 
 (def sim-website-url "https://iss-sim.spacex.com")
@@ -34,6 +34,7 @@
     (future (tel/poll chr))
     (wait chr 2)
     ;; concurrent futures for each control axis
+    (println "Rotation alignment enabled")
     (future (dragon/align-roll-rot chr))
     (future (dragon/align-pitch-rot chr))
     (future (dragon/align-yaw-rot chr))
@@ -42,17 +43,15 @@
     (dragon/wait-rotation-stopped)
     ;; concurrent futures for each translation axis besides approach axis x
     (wait chr 4)
+    (println "Translation alignment enabled")
     (future (dragon/align-z-translation chr))
     (future (dragon/align-y-translation chr))
     (wait chr 5)
 
-    (dragon/translate chr "fwd")
-    (dragon/translate chr "fwd")
-    (dragon/translate chr "fwd")
-
     ;; start actual approach to docking port
-    (future (dragon/approach chr))
-    (wait chr 300)
-    )
-  (System/exit 0)
-  )
+    (dragon/accelerate chr)
+    (future (dragon/decellerate chr))
+    (wait-visible chr success {:timeout 300})
+    (println "Docking confirmed")
+    (wait chr 10))
+  (System/exit 0))

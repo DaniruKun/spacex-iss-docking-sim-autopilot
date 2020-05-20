@@ -10,14 +10,20 @@
 
 ;; thresholds
 (def max-def-rot-rate 0.1)
-(def max-approach-rate -2.0)
-(def max-final-approach-rate -0.18)
+(def max-approach-rate 2.0)
+(def max-final-approach-rate -0.15)
 (def max-rotation-error 0.2)
 (def min-rot-impulse-interval 400) ;; ms
-(def min-transl-impulse-interval 800)                       ;; ms
-(def max-translation-error 0.2)
-(def max-translation-rate 0.10)
-(def safezone 10)
+(def min-transl-impulse-interval 1500)                       ;; ms
+(def max-translation-error 0.21)
+(def max-translation-rate 0.04)
+(def safezone 15)
+(def deadzone 0.3)
+
+(defn x-within-safe-zone?
+  "Check if the spaceship is within the safe zone."
+  []
+  (<= (math/abs (@tel/telem :x)) safezone))
 
 ;; RCS control functions
 
@@ -34,8 +40,7 @@
      (case dir
        "left" (fill-active driv comma)
        "right" (fill-active driv point)))
-   (Thread/sleep min-rot-impulse-interval)
-   )
+   (Thread/sleep min-rot-impulse-interval))
   ([driv dir]
    (roll driv dir max-def-rot-rate)))
 
@@ -50,8 +55,7 @@
      (case dir
        "up" (fill-active driv k/arrow-up)
        "down" (fill-active driv k/arrow-down)))
-   (Thread/sleep min-rot-impulse-interval)
-   )
+   (Thread/sleep min-rot-impulse-interval))
   ([driv dir]
    (pitch driv dir max-def-rot-rate)))
 
@@ -67,8 +71,7 @@
        "port" (fill-active driv k/arrow-left)                  ;; left
        "starboard" (fill-active driv k/arrow-right)            ;; right
 ))
-   (Thread/sleep min-rot-impulse-interval)
-   )
+   (Thread/sleep min-rot-impulse-interval))
   ([driv dir]
    (yaw driv dir max-def-rot-rate)))
 
@@ -97,11 +100,12 @@
                  (pos? (@tel/telem :vx)))
             (fill-active driv "e"))
     "aft" (when (or
-                 (< (math/abs (@tel/telem :vx)) max-approach-rate)
-                 (neg? (@tel/telem :vx)))
-            (fill-active driv "q")))
-  (Thread/sleep min-transl-impulse-interval)
-  )
+                 (> (math/abs (@tel/telem :vx)) max-approach-rate)
+                 (and
+                  (neg? (@tel/telem :vx))
+                  (x-within-safe-zone?)
+                  (< (@tel/telem :vx) -0.2)))
+            (fill-active driv "q"))))
 
 ;; Alignment functions
 
@@ -128,18 +132,28 @@
 (defn align-y
   "docstring"
   [driv]
-  (if (pos? (@tel/telem :y))
-    (translate driv "left")
-    (translate driv "right"))
-  )
+  (let [y (@tel/telem :y)
+        vy (@tel/telem :vy)]
+    (if (pos? y)
+      (when (or (> (math/abs y) deadzone)
+                (pos? vy))
+        (translate driv "left"))
+      (when (or (> (math/abs y) deadzone)
+                (neg? vy))
+        (translate driv "right")))))
 
 (defn align-z
   "docstring"
   [driv]
-  (if (pos? (@tel/telem :z))
-    (translate driv "down")
-    (translate driv "up"))
-  )
+  (let [z (@tel/telem :z)
+        vz (@tel/telem :vz)]
+    (if (pos? z)
+      (when (or (> (math/abs z) deadzone)
+                (pos? vz))
+        (translate driv "down"))
+      (when (or (> (math/abs z) deadzone)
+                (neg? vz))
+        (translate driv "up")))))
 
 (defn kill-pitch-rot
   "docstring"
@@ -176,6 +190,7 @@
       (if (pos? vy)
         (translate driv "left")
         (translate driv "right"))
+      (Thread/sleep min-transl-impulse-interval)
       (recur driv))))
 
 (defn kill-z-translation
@@ -186,17 +201,16 @@
       (if (pos? vz)
         (translate driv "down")
         (translate driv "up"))
+      (Thread/sleep min-transl-impulse-interval)
       (recur driv))))
 
 (defn slowdown-under-limit
   "docstring"
   [driv max-rate]
   (let [vx (@tel/telem :vx)]
-    (when (> vx max-rate)
+    (when (<= vx max-rate)
       (translate driv "aft")
-      (recur driv max-rate))
-    )
-  )
+      (recur driv max-rate))))
 
 ;; Internal functions
 
@@ -224,12 +238,6 @@
   "docstring"
   []
   (<= (math/abs (@tel/telem :z)) max-translation-error))
-
-(defn x-within-safe-zone?
-  "Check if the spaceship is within the safe zone."
-  []
-  (<= (math/abs (@tel/telem :x)) safezone)
-  )
 
 (defn wait-rotation-stopped
   "Keep polling telemetry until rotation stop has been confirmed."
@@ -277,7 +285,7 @@
   (if (y-within-error?)
     (kill-y-translation driv)
     (align-y driv))
-  (Thread/sleep 1000)
+  (Thread/sleep min-transl-impulse-interval)
   (recur driv))
 
 (defn align-z-translation
@@ -286,14 +294,18 @@
   (if (z-within-error?)
     (kill-z-translation driv)
     (align-z driv))
-  (Thread/sleep 1000)
+  (Thread/sleep min-transl-impulse-interval)
   (recur driv))
 
-(defn approach
-  "Perform controlled approach on x axis."
+(defn accelerate
+  "docstring"
   [driv]
-  (if (x-within-safe-zone?)
-    (slowdown-under-limit driv 0.18)
-    )
-  (recur driv)
-  )
+  (repeat 10 (translate driv "fwd")))
+
+(defn decellerate
+  "docstring"
+  [driv]
+  (Thread/sleep 1000)
+  (if (< (@tel/telem :x) safezone)
+    (repeat 8 (translate driv "aft"))
+    (recur driv)))

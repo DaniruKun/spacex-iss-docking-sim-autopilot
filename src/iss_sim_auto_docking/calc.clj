@@ -1,7 +1,6 @@
 (ns iss-sim-auto-docking.calc
   (:gen-class))
 
-
 (defn get-vx
   "Calculate velocity vector x component."
   [dt dx]
@@ -15,6 +14,5 @@
 (defn get-vz
   "Calculate velocity vector z component."
   [dt dz]
-  (float (/ dz dt))
-)
+  (float (/ dz dt)))
 
