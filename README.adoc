@@ -1,0 +1,74 @@
+= ISS Sim Automatic Docking System
+
+video::YNYwYZznuMs[youtube]
+
+This app performs fully automatic docking of the Crew Dragon in the SpaceX ISS docking simulator.
+
+Want to read more about it? Check the article on Medium.
+
+== Running
+
+You can grab a release from releases, or check the build section. You will need Java installed to run the `.jar`
+
+You can run the built uberjar with
+
+    java -jar iss-sim-auto-docking.jar
+    
+
+Or you can just double click the `.jar`
+
+== Installation
+
+=== Chrome
+
+Make sure you have the LATEST Chrome version.
+
+=== Webdriver
+
+Make sure you have the latest WebDriver (or one compatible with your Chrome version).
+
+You can install the latest version on macOS with
+
+    brew install chromedriver
+
+=== Java 8
+
+Make sure you have at least Java 8 installed on your machine, and that it is the active version.
+
+=== Leiningen
+
+This project uses Leiningen.
+
+== Build
+
+You can build an uberjar with
+
+    lein uberjar
+
+== Support
+
+image::https://www.ko-fi.com/img/githubbutton_sm.svg["Ko-Fi", link="https://ko-fi.com/I3I61NHVO"]
+
+
+== Bugs
+
+The very final approach speed control is a bit WIP, other than that everything else is fully automatic.
+
+== Contributing
+
+Play around with it! Try setting different parameters in the source files. See how it impacts the performance of the autopilot.
+
+== License
+
+Copyright © 2020 Daniils Petrovs
+
+This program and the accompanying materials are made available under the
+terms of the Eclipse Public License 2.0 which is available at
+http://www.eclipse.org/legal/epl-2.0.
+
+This Source Code may also be made available under the following Secondary
+Licenses when the conditions for such availability set forth in the Eclipse
+Public License, v. 2.0 are satisfied: GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or (at your
+option) any later version, with the GNU Classpath Exception which is available
+at https://www.gnu.org/software/classpath/license.html.
