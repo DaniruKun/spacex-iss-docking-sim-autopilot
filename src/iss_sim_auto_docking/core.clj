@@ -9,6 +9,7 @@
 
 ;; Button selectors
 (def begin-button {:id :begin-button})
+(def success {:css "#success > h2"})
 
 (defn setup-sim
   "Setup the simulator."
@@ -40,13 +41,18 @@
     (wait chr 10)
     (dragon/wait-rotation-stopped)
     ;; concurrent futures for each translation axis besides approach axis x
-    (wait chr 2)
+    (wait chr 4)
     (future (dragon/align-z-translation chr))
     (future (dragon/align-y-translation chr))
     (wait chr 5)
+
+    (dragon/translate chr "fwd")
+    (dragon/translate chr "fwd")
+    (dragon/translate chr "fwd")
+
     ;; start actual approach to docking port
-    (dragon/approach chr)
-    (wait chr 10)
+    (future (dragon/approach chr))
+    (wait chr 300)
     )
   (System/exit 0)
   )
