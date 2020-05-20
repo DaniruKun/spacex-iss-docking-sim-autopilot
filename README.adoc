@@ -4,10 +4,9 @@
 
 https://www.youtube.com/watch?v=YNYwYZznuMs
 
-
 This app performs fully automatic docking of the Crew Dragon in the SpaceX ISS docking simulator.
 
-Want to read more about it? Check the article on Medium.
+Want to read more about it? Check the article on link:https://medium.com/@thedanpetrov/creating-a-spacex-crew-dragon-simulator-autopilot-in-clojure-1ac095d9209b[Medium].
 
 == Running
 
@@ -15,10 +14,14 @@ You can grab a release from releases, or check the build section. You will need 
 
 You can run the built uberjar with
 
-    java -jar iss-sim-auto-docking.jar
+    java -jar iss-sim-auto-docking-standalone.jar
     
 
 Or you can just double click the `.jar`
+
+You can also run the project with Leiningen:
+
+    lein run
 
 == Installation
 
@@ -51,6 +54,8 @@ You can build an uberjar with
 == Support
 
 image::https://www.ko-fi.com/img/githubbutton_sm.svg["Ko-Fi", link="https://ko-fi.com/I3I61NHVO"]
+
+Or you can just check out my website: link:https://www.danpetrov.xyz[]
 
 
 == Bugs
