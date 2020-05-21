@@ -52,6 +52,26 @@ You can build an uberjar with
 
     lein uberjar
 
+== Quick guide
+
+=== Namespaces
+
+link:src/iss_sim_auto_docking/core.clj[core]
+
+Simulator setup and initializations happen, together with main control flow.
+
+link:src/iss_sim_auto_docking/dragon.clj[dragon]
+
+Control logic and drivers related to Dragon are implemented.
+
+link:src/iss_sim_auto_docking/telemetry.clj[telemetry]
+
+Functions related to fetching telemetry and updating telemetry data.
+
+link:src/iss_sim_auto_docking/calc.clj[calc]
+
+Helper calculations.
+
 == Support
 
 image::https://www.ko-fi.com/img/githubbutton_sm.svg["Ko-Fi", link="https://ko-fi.com/I3I61NHVO"]
