@@ -56,7 +56,7 @@ You can build an uberjar with
 
 image::https://www.ko-fi.com/img/githubbutton_sm.svg["Ko-Fi", link="https://ko-fi.com/I3I61NHVO"]
 
-Or you can just check out my website: link:https://www.danpetrov.xyz[]
+Or you can just check out my website: link:https://danpetrov.xyz[]
 
 
 == Bugs
