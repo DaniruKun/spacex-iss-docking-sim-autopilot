@@ -1,3 +1,5 @@
+:toc:
+
 = ISS Sim Automatic Docking System
 
 *Video demo:*
