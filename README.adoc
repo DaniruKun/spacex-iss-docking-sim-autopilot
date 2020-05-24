@@ -2,6 +2,8 @@
 
 = ISS Sim Automatic Docking System
 
+image:https://github.com/DaniruKun/spacex-iss-docking-sim-autopilot/workflows/Clojure%20CI/badge.svg["Github CI", link="https://github.com/DaniruKun/spacex-iss-docking-sim-autopilot"]
+
 *Video demo:*
 
 https://www.youtube.com/watch?v=YNYwYZznuMs
