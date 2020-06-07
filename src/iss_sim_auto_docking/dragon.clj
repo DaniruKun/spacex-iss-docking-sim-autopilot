@@ -292,12 +292,12 @@
 (defn accelerate
   "docstring"
   [driv]
-  (repeat 10 (translate driv "fwd")))
+  (repeat 20 (translate driv "fwd")))
 
 (defn decellerate
   "docstring"
   [driv]
   (Thread/sleep 1000)
   (if (< (@tel/telem :x) safezone)
-    (repeat 8 (translate driv "aft"))
+    (repeat 18 (translate driv "aft"))
     (recur driv)))

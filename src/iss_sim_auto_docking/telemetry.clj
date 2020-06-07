@@ -24,17 +24,13 @@
       first
       Float/parseFloat))
 
-(defn parse-rot-rate
-  [rate]
-  (Float/parseFloat (str/replace rate #" °/s" emptystr)))
-
-(defn parse-dist
-  [range]
-  (Float/parseFloat (str/replace range #" m" emptystr)))
-
-(defn parse-vel
-  [vel]
-  (Float/parseFloat (str/replace vel #" m/s" emptystr)))
+(defn parse-metric
+  "Parse a telemetry metric"
+  [metric metric-type]
+  (Float/parseFloat (str/replace metric (case metric-type
+                                          :roll-rate #" °/s"
+                                          :range #" m"
+                                          :vel #" m/s") emptystr)))
 
 ;; Roll
 
@@ -50,7 +46,7 @@
   [driv]
   (let [roll-rate-q (query driv {:css "#roll > div.rate"})
         roll-rate (get-element-text-el driv roll-rate-q)]
-    (parse-rot-rate roll-rate)))
+    (parse-metric roll-rate :roll-rate)))
 
 ;; Pitch
 
@@ -66,7 +62,7 @@
   [driv]
   (let [pitch-rate-q (query driv {:css "#pitch > div.rate"})
         pitch-rate (get-element-text-el driv pitch-rate-q)]
-    (parse-rot-rate pitch-rate)))
+    (parse-metric pitch-rate :roll-rate)))
 
 ;; Yaw
 
@@ -91,28 +87,28 @@
   [driv]
   (let [range-q (query driv {:css "#range > div.rate"})
         range (get-element-text-el driv range-q)]
-    (parse-dist range)))
+    (parse-metric range :range)))
 
 (defn get-x
   "Get the distance to ISS on X axis."
   [driv]
   (let [x-q (query driv {:css "#x-range > div"})
         x (get-element-text-el driv x-q)]
-    (parse-dist x)))
+    (parse-metric x :range)))
 
 (defn get-y
   "Get the distance to ISS on Y axis."
   [driv]
   (let [y-q (query driv {:css "#y-range > div"})
         y (get-element-text-el driv y-q)]
-    (parse-dist y)))
+    (parse-metric y :range)))
 
 (defn get-z
   "Get the distance to ISS on Z axis."
   [driv]
   (let [z-q  (query driv {:css "#z-range > div"})
         z (get-element-text-el driv z-q)]
-    (parse-dist z)))
+    (parse-metric z :range)))
 
 (defn get-approach-rate
   "Get the approach rate relative to ISS."
@@ -120,7 +116,7 @@
   (let [v-q (query driv {:css "#rate > div.rate"})
         v (get-element-text-el driv v-q)]
     (-> v
-        (parse-vel)
+        (parse-metric :vel)
         (math/abs))))
 
 (defn poll
