@@ -25,7 +25,7 @@
       Float/parseFloat))
 
 (defn parse-metric
-  "Parse a telemetry petric"
+  "Parse a telemetry metric"
   [metric metric-type]
   (Float/parseFloat (str/replace metric (case metric-type
                                           :roll-rate #" °/s"

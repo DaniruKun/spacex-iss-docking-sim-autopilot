@@ -1,4 +1,4 @@
-(defproject iss-sim-auto-docking "0.1.1"
+(defproject iss-sim-auto-docking "0.2.0"
   :description "This app does automatic docking in the ISS SpaceX simulator."
   :url "https://github.com/DaniruKun/spacex-iss-docking-sim-autopilot"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
