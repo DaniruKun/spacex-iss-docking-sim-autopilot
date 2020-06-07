@@ -51,7 +51,7 @@
     ;; start actual approach to docking port
     (dragon/accelerate chr)
     (future (dragon/decellerate chr))
-    (wait-visible chr success {:timeout 300})
+    (wait-visible chr success {:timeout 420})
     (println "Docking confirmed")
     (wait chr 10))
   (System/exit 0))

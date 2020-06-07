@@ -6,7 +6,7 @@
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [etaoin "0.3.6"]
                  [org.clojure/math.numeric-tower "0.0.4"]]
-  :main iss-sim-auto-docking.core
+  :main ^:skip-aot iss-sim-auto-docking.core
   :target-path "target/%s"
   :jar-name "iss-sim-auto-docking.jar"
   :uberjar-name "iss-sim-auto-docking-standalone.jar"
