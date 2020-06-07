@@ -116,21 +116,18 @@
     (pitch driv "down")))
 
 (defn align-yaw
-  "docstring"
   [driv]
   (if (neg? (@tel/telem :yaw))
     (yaw driv "port")
     (yaw driv "starboard")))
 
 (defn align-roll
-  "docstring"
   [driv]
   (if (neg? (@tel/telem :roll))
     (roll driv "left")
     (roll driv "right")))
 
 (defn align-y
-  "docstring"
   [driv]
   (let [y (@tel/telem :y)
         vy (@tel/telem :vy)]
@@ -143,7 +140,6 @@
         (translate driv "right")))))
 
 (defn align-z
-  "docstring"
   [driv]
   (let [z (@tel/telem :z)
         vz (@tel/telem :vz)]
@@ -206,34 +202,23 @@
 
 ;; Internal functions
 
-(defn pitch-within-error?
-  ""
-  []
+(defn pitch-within-error? []
   (<= (math/abs (@tel/telem :pitch)) max-rotation-error))
 
-(defn yaw-within-error?
-  ""
-  []
+(defn yaw-within-error? []
   (<= (math/abs (@tel/telem :yaw)) max-rotation-error))
 
-(defn roll-within-error?
-  ""
-  []
+(defn roll-within-error? []
   (<= (math/abs (@tel/telem :roll)) max-rotation-error))
 
-(defn y-within-error?
-  ""
-  []
+(defn y-within-error? []
   (<= (math/abs (@tel/telem :y)) max-translation-error))
 
-(defn z-within-error?
-  ""
-  []
+(defn z-within-error? []
   (<= (math/abs (@tel/telem :z)) max-translation-error))
 
 (defn wait-rotation-stopped
-  "Keep polling telemetry until rotation stop has been confirmed."
-  []
+  "Keep polling telemetry until rotation stop has been confirmed." []
   (if (and
        (zero? (@tel/telem :roll-rate))
        (zero? (@tel/telem :pitch-rate))
@@ -290,12 +275,10 @@
   (recur driv))
 
 (defn accelerate
-  "docstring"
   [driv]
   (repeat 20 (translate driv "fwd")))
 
 (defn decellerate
-  "docstring"
   [driv]
   (Thread/sleep 1000)
   (if (< (@tel/telem :x) safezone)
