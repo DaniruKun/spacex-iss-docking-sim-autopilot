@@ -85,36 +85,26 @@
 (defn get-range
   "Get the Euclidian distance to the ISS in meters."
   [driv]
-  (let [range-q (query driv {:css "#range > div.rate"})
-        range (get-element-text-el driv range-q)]
+  (let [range (->> {:css "#range > div.rate"}
+                   (query driv)
+                   (get-element-text-el driv))]
     (parse-metric range :range)))
 
-(defn get-x
-  "Get the distance to ISS on X axis."
-  [driv]
-  (let [x-q (query driv {:css "#x-range > div"})
-        x (get-element-text-el driv x-q)]
-    (parse-metric x :range)))
-
-(defn get-y
-  "Get the distance to ISS on Y axis."
-  [driv]
-  (let [y-q (query driv {:css "#y-range > div"})
-        y (get-element-text-el driv y-q)]
-    (parse-metric y :range)))
-
-(defn get-z
-  "Get the distance to ISS on Z axis."
-  [driv]
-  (let [z-q  (query driv {:css "#z-range > div"})
-        z (get-element-text-el driv z-q)]
-    (parse-metric z :range)))
+(defn get-dist
+  "Get the distance to ISS on a given axis."
+  [driv axis]
+  (let [sel (str "#" axis "-range > div")
+        dist (->> {:css sel}
+                  (query driv)
+                  (get-element-text-el driv))]
+    (parse-metric dist :range)))
 
 (defn get-approach-rate
   "Get the approach rate relative to ISS."
   [driv]
-  (let [v-q (query driv {:css "#rate > div.rate"})
-        v (get-element-text-el driv v-q)]
+  (let [v (->> {:css "#rate > div.rate"}
+               (query driv)
+               (get-element-text-el driv))]
     (-> v
         (parse-metric :vel)
         (math/abs))))
@@ -127,9 +117,9 @@
       (Thread/sleep poll-interval)
       (let [t (System/currentTimeMillis)
             dt (* (+ poll-interval (- t (@telem :t))) 0.001)
-            x (get-x driv)
-            y (get-y driv)
-            z (get-z driv)
+            x (get-dist driv "x")
+            y (get-dist driv "y")
+            z (get-dist driv "z")
 
             dx (- x (@telem :x))
             dy (- y (@telem :y))

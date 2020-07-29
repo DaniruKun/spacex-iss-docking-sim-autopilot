@@ -71,7 +71,7 @@
        "port" (fill-active driv k/arrow-left)                  ;; left
        "starboard" (fill-active driv k/arrow-right)            ;; right
 ))
-   (Thread/sleep min-rot-impulse-interval))
+  (Thread/sleep min-rot-impulse-interval))
   ([driv dir]
    (yaw driv dir max-def-rot-rate)))
 

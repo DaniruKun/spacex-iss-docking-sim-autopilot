@@ -35,6 +35,7 @@
     (wait chr 2)
     ;; concurrent futures for each control axis
     (println "Rotation alignment enabled")
+    ;; TODO: Replace with core.async channels
     (future (dragon/align-roll-rot chr))
     (future (dragon/align-pitch-rot chr))
     (future (dragon/align-yaw-rot chr))
